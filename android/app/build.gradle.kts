@@ -77,6 +77,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Fork patch: side-by-side install next to an F-Droid build.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
