@@ -35,7 +35,7 @@ configurations.all {
 android {
     namespace = "chat.fluffy.fluffychat"
     // Workaround for https://github.com/juliansteenbakker/flutter_secure_storage/issues/1224
-    compileSdk = 37 //flutter.compileSdkVersion
+    compileSdk = 36 // pin fork: lokalny SDK ma android-36; flutter 3.47 default=37 nieobecny
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -68,7 +68,7 @@ android {
     defaultConfig {
         applicationId = "chat.fluffy.fluffychat"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 36 // pin fork: patrz compileSdk
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         ndk { // Workaround for https://github.com/flutter/flutter/issues/162153#issuecomment-2612443642
