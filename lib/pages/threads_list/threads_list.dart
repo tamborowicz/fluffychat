@@ -21,6 +21,7 @@ class ThreadsListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
+    final theme = Theme.of(context);
     final timeline = controller.timeline;
 
     // Group thread replies by their root event id from the raw timeline
@@ -42,18 +43,34 @@ class ThreadsListPage extends StatelessWidget {
 
     // Most recently active thread first.
     final entries = threads.entries.toList()
-      ..sort((a, b) => b.value.last.originServerTs.compareTo(a.value.last.originServerTs));
+      ..sort(
+        (a, b) => b.value.last.originServerTs.compareTo(a.value.last.originServerTs),
+      );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.thread)),
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        title: Text(l10n.thread),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
+      ),
       body: entries.isEmpty
           ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.forum_outlined, size: 48),
+                  Icon(
+                    Icons.forum_outlined,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 8),
-                  Text(l10n.thread),
+                  Text(
+                    l10n.thread,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -107,7 +124,10 @@ class _ThreadTile extends StatelessWidget {
               hideReply: true,
             )
             .replaceAll('\n', ' ');
+        final theme = Theme.of(context);
         return ListTile(
+          iconColor: theme.colorScheme.onSurfaceVariant,
+          textColor: theme.colorScheme.onSurface,
           leading: const Icon(Icons.forum_outlined),
           title: Text(
             event == null ? l10n.loadingPleaseWait : senderName ?? '',
@@ -116,10 +136,15 @@ class _ThreadTile extends StatelessWidget {
           ),
           subtitle: Text(
             preview ?? l10n.loadingPleaseWait,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          trailing: Text('$replyCount × ${l10n.reply}'),
+          trailing: Text(
+            '$replyCount × ${l10n.reply}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           onTap: () {
             Navigator.of(context).pop();
             controller.enterThread(rootId);
