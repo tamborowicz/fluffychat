@@ -366,9 +366,9 @@ class SettingsStyleView extends StatelessWidget {
               // use ListTile's titleMedium (same 16sp base as a message body),
               // so "lists" really is listTextScale x chat.
               subtitle: Text(
-                'czat ${(AppConfig.messageFontSize * AppSettings.fontSizeFactor.value).toStringAsFixed(1)} pt'
-                ' · listy ${(AppConfig.messageFontSize * AppSettings.fontSizeFactor.value * AppConfig.listTextScale).toStringAsFixed(1)} pt'
-                ' (×${AppConfig.listTextScale})',
+                'czat ${(AppConfig.messageFontSize * AppConfig.messageTextScale * AppSettings.fontSizeFactor.value).toStringAsFixed(1)} pt'
+                ' · listy ${(AppConfig.messageFontSize * AppConfig.listTextScale * AppSettings.fontSizeFactor.value).toStringAsFixed(1)} pt'
+                ' (oba ×${AppConfig.messageTextScale})',
                 style: TextStyle(
                   fontFamily: AppConfig.monospaceFont,
                   fontSize: 11,

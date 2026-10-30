@@ -19,6 +19,7 @@ abstract class AppConfig {
   static const String schemePrefix = 'matrix:';
   static const String pushNotificationsChannelId = 'fluffychat_push';
   static const String pushNotificationsAppId = 'chat.fluffy.fluffychat';
+
   /// Fork patch (terminal skin): square corners everywhere - this single value
   /// drives most call sites, so 0 turns the whole UI rectangular.
   static const double borderRadius = 0.0;
@@ -37,6 +38,11 @@ abstract class AppConfig {
   /// the chat itself. Applied as a textScaler wrapper around the list bodies,
   /// because AppSettings.fontSizeFactor only scales the timeline and input bar.
   static const double listTextScale = 0.9;
+
+  /// Fork patch: message bodies are rendered at 90% of messageFontSize so the
+  /// chat and the lists share one visual size (list titles are ListTile's
+  /// titleMedium, the same 16sp base). Keeps the jump list -> chat calm.
+  static const double messageTextScale = 0.9;
   static const double columnWidth = 360.0;
 
   static const String enablePushTutorial =

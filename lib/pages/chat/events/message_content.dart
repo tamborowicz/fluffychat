@@ -48,7 +48,9 @@ class MessageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const fontSize = AppConfig.messageFontSize;
+    // Fork patch: message bodies at 90% of the configured size - the lists use
+    // the same 0.9 on the same 16sp base, so chat and lists match.
+    const fontSize = AppConfig.messageFontSize * AppConfig.messageTextScale;
     final buttonTextColor = textColor;
     switch (event.type) {
       case EventTypes.Message:
