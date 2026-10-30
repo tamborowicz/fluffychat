@@ -44,6 +44,10 @@ class ThemeController extends State<ThemeBuilder> {
   static ThemeController of(BuildContext context) =>
       Provider.of<ThemeController>(context, listen: false);
 
+  /// Fork patch (terminal skin): rebuilds MaterialApp so a palette change in
+  /// the settings repaints every screen immediately.
+  void refreshTheme() => setState(() {});
+
   Future<void> _loadData(_) async {
     final preferences = _sharedPreferences ??=
         await SharedPreferences.getInstance();

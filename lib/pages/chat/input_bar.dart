@@ -396,73 +396,69 @@ class InputBar extends StatelessWidget {
       focusNode: focusNode,
       textEditingController: controller,
       optionsBuilder: getSuggestions,
-      fieldViewBuilder: (context, controller, focusNode, _) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(AppSettings.fontSizeFactor.value),
-        ),
-        child: TextField(
+      // Fork patch: font scaling is applied app-wide (fluffy_chat_app.dart).
+      fieldViewBuilder: (context, controller, focusNode, _) => TextField(
+        controller: controller,
+        focusNode: focusNode,
+        readOnly: readOnly,
+        onEditingComplete: () {
+          // To not lose focus on iOS:
+          // https://github.com/krille-chan/fluffychat/issues/2784
+        },
+        contextMenuBuilder: (c, e) => MarkdownContextBuilder(
+          editableTextState: e,
           controller: controller,
-          focusNode: focusNode,
-          readOnly: readOnly,
-          onEditingComplete: () {
-            // To not lose focus on iOS:
-            // https://github.com/krille-chan/fluffychat/issues/2784
-          },
-          contextMenuBuilder: (c, e) => MarkdownContextBuilder(
-            editableTextState: e,
-            controller: controller,
-            onPasteImage: PlatformInfos.isIOS && onSubmitImage != null
-                ? () async {
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final l10n = L10n.of(context);
-                    final image = await Pasteboard.image;
-                    if (image == null) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text(l10n.noImageInClipboard)),
-                      );
-                      return;
-                    }
-                    onSubmitImage!(image);
+          onPasteImage: PlatformInfos.isIOS && onSubmitImage != null
+              ? () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final l10n = L10n.of(context);
+                  final image = await Pasteboard.image;
+                  if (image == null) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text(l10n.noImageInClipboard)),
+                    );
+                    return;
                   }
-                : null,
-          ),
-          contentInsertionConfiguration: ContentInsertionConfiguration(
-            onContentInserted: (KeyboardInsertedContent content) async {
-              final proceed = await showTrustUserInRoomDialog(context, room);
-              if (!proceed) return;
-              final data = content.data;
-              if (data == null) return;
-
-              final file = MatrixFile(
-                mimeType: content.mimeType,
-                bytes: data,
-                name: content.uri.split('/').last,
-              );
-              room.sendFileEvent(file, shrinkImageMaxDimension: 1600);
-            },
-          ),
-          minLines: minLines,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          autofocus: autofocus!,
-          inputFormatters: [
-            LengthLimitingTextInputFormatter((maxPDUSize / 3).floor()),
-          ],
-          onSubmitted: (text) {
-            // fix for library for now
-            // it sets the types for the callback incorrectly
-            onSubmitted!(text);
-          },
-          maxLength: AppSettings.textMessageMaxLength.value,
-          decoration: decoration,
-          onChanged: (text) {
-            // fix for the library for now
-            // it sets the types for the callback incorrectly
-            onChanged!(text);
-          },
-          textCapitalization: TextCapitalization.sentences,
+                  onSubmitImage!(image);
+                }
+              : null,
         ),
+        contentInsertionConfiguration: ContentInsertionConfiguration(
+          onContentInserted: (KeyboardInsertedContent content) async {
+            final proceed = await showTrustUserInRoomDialog(context, room);
+            if (!proceed) return;
+            final data = content.data;
+            if (data == null) return;
+
+            final file = MatrixFile(
+              mimeType: content.mimeType,
+              bytes: data,
+              name: content.uri.split('/').last,
+            );
+            room.sendFileEvent(file, shrinkImageMaxDimension: 1600);
+          },
+        ),
+        minLines: minLines,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        autofocus: autofocus!,
+        inputFormatters: [
+          LengthLimitingTextInputFormatter((maxPDUSize / 3).floor()),
+        ],
+        onSubmitted: (text) {
+          // fix for library for now
+          // it sets the types for the callback incorrectly
+          onSubmitted!(text);
+        },
+        maxLength: AppSettings.textMessageMaxLength.value,
+        decoration: decoration,
+        onChanged: (text) {
+          // fix for the library for now
+          // it sets the types for the callback incorrectly
+          onChanged!(text);
+        },
+        textCapitalization: TextCapitalization.sentences,
       ),
       optionsViewBuilder: (c, onSelected, s) {
         final suggestions = s.toList();

@@ -105,17 +105,28 @@ class FluffyChatApp extends StatelessWidget {
         ],
         supportedLocales: L10n.supportedLocales,
         routerConfig: router,
-        builder: (context, child) => AppLockWidget(
-          pincode: appLockSettings.pincode,
-          useBiometrics: appLockSettings.useBiometrics,
-          isLoggedIn: clients.any((client) => client.isLogged()),
-          // Need a navigator above the Matrix widget for
-          // displaying dialogs
-          child: Matrix(
-            clients: clients,
-            store: store,
-            child: CallOverlay(
-              child: testWidget ?? child ?? const SizedBox.shrink(),
+        builder: (context, child) => MediaQuery(
+          // Fork patch: AppSettings.fontSizeFactor now scales the WHOLE app
+          // (it used to be applied only to the timeline and the input bar).
+          // Composed with the user's system font scale instead of replacing it.
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(
+              MediaQuery.textScalerOf(context).scale(1) *
+                  AppSettings.fontSizeFactor.value,
+            ),
+          ),
+          child: AppLockWidget(
+            pincode: appLockSettings.pincode,
+            useBiometrics: appLockSettings.useBiometrics,
+            isLoggedIn: clients.any((client) => client.isLogged()),
+            // Need a navigator above the Matrix widget for
+            // displaying dialogs
+            child: Matrix(
+              clients: clients,
+              store: store,
+              child: CallOverlay(
+                child: testWidget ?? child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

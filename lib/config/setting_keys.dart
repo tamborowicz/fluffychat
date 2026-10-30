@@ -6,6 +6,7 @@
 import 'dart:convert';
 
 import 'package:async/async.dart';
+import 'package:fluffychat/config/theme_palettes.dart';
 import 'package:fluffychat/utils/platform_infos.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -37,6 +38,8 @@ enum AppSettings<T> {
   ),
   renderHtml<bool>('chat.fluffy.renderHtml', true),
   fontSizeFactor<double>('chat.fluffy.font_size_factor', 1.0),
+  // Fork patch (terminal skin): which palette from ThemePalettes is active.
+  themePalette<String>('chat.fluffy.theme_palette', ThemePalettes.defaultId),
   hideRedactedEvents<bool>('chat.fluffy.hideRedactedEvents', false),
   hideUnknownEvents<bool>('chat.fluffy.hideUnknownEvents', true),
   autoplayImages<bool>('chat.fluffy.autoplay_images', true),

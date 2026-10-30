@@ -7,6 +7,7 @@ import 'dart:ui';
 
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fluffychat/config/setting_keys.dart';
+import 'package:fluffychat/config/theme_palettes.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat/events/state_message.dart';
@@ -66,6 +67,35 @@ class SettingsStyleView extends StatelessWidget {
                     label: Text(L10n.of(context).systemTheme),
                     icon: const Icon(Icons.auto_mode_outlined),
                   ),
+                ],
+              ),
+            ),
+            Divider(color: theme.dividerColor),
+            ListTile(
+              title: Text(
+                'Paleta (terminal skin)',
+                style: TextStyle(
+                  color: theme.colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                'tło + akcent; zmiana działa natychmiast',
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final palette in ThemePalettes.all)
+                    _PaletteChip(
+                      palette: palette,
+                      selected: palette.id == controller.currentPaletteId,
+                      onTap: () => controller.setPalette(palette.id),
+                    ),
                 ],
               ),
             ),
@@ -341,6 +371,59 @@ class SettingsStyleView extends StatelessWidget {
               semanticFormatterCallback: (d) => d.toString(),
               onChanged: controller.changeFontSizeFactor,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fork patch (terminal skin): one selectable palette - background swatch,
+/// accent swatch, name, check mark.
+class _PaletteChip extends StatelessWidget {
+  final ThemePalette palette;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PaletteChip({
+    required this.palette,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          border: Border.all(
+            color: selected ? palette.accent : theme.colorScheme.outlineVariant,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 10, height: 18, color: palette.surface),
+            Container(width: 10, height: 18, color: palette.accent),
+            Container(width: 10, height: 18, color: palette.ink),
+            const SizedBox(width: 8),
+            Text(
+              palette.label,
+              style: TextStyle(
+                fontFamily: AppConfig.monospaceFont,
+                fontSize: 11,
+                color: palette.ink,
+              ),
+            ),
+            if (selected) ...[
+              const SizedBox(width: 6),
+              Icon(Icons.check, size: 14, color: palette.accent),
+            ],
           ],
         ),
       ),

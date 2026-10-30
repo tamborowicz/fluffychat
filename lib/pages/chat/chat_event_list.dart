@@ -5,7 +5,6 @@
 
 import 'package:collection/collection.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat/chat.dart';
@@ -114,12 +113,11 @@ class ChatEventList extends StatelessWidget {
     final hasWallpaper =
         controller.room.client.applicationAccountConfig.wallpaperUrl != null;
 
+    // Fork patch: font scaling moved to the app-level MediaQuery in
+    // fluffy_chat_app.dart, so it applies everywhere instead of only here.
     return SelectionArea(
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(AppSettings.fontSizeFactor.value),
-        ),
-        child: ListView.custom(
+      child: Builder(
+        builder: (context) => ListView.custom(
           padding: EdgeInsets.only(
             top: 8 + MediaQuery.paddingOf(context).top,
             bottom:

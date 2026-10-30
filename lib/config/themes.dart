@@ -4,6 +4,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import 'package:fluffychat/config/app_config.dart';
+import 'package:fluffychat/config/setting_keys.dart';
+import 'package:fluffychat/config/theme_palettes.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -44,7 +46,11 @@ abstract class FluffyThemes {
     Brightness brightness, [
     Color? seed,
   ]) {
-    final colorScheme = _terminalColorScheme(brightness);
+    // Fork patch (terminal skin): palette is selectable in settings and its own
+    // polarity wins over ThemeMode - a terminal skin is about matching a real
+    // terminal (dark), so a light system theme no longer flips it.
+    final palette = ThemePalettes.byId(AppSettings.themePalette.value);
+    final colorScheme = _paletteColorScheme(palette);
     final isColumnMode = FluffyThemes.isColumnMode(context);
     final dividerColor = brightness == Brightness.dark
         ? colorScheme.surfaceContainerHighest
@@ -52,7 +58,7 @@ abstract class FluffyThemes {
     return ThemeData(
       visualDensity: VisualDensity.standard,
       useMaterial3: true,
-      brightness: brightness,
+      brightness: colorScheme.brightness,
       colorScheme: colorScheme,
       // Fork patch (terminal skin): monospace chrome. Message bodies override
       // this back to a proportional face (AppConfig.bodyFont) and code blocks
@@ -134,61 +140,48 @@ abstract class FluffyThemes {
     );
   }
 
-  /// Fork patch (terminal skin): palette taken from the owner's Termux setup -
-  /// Tokyo Night Dark background (#1a1b26, what the phone actually renders)
-  /// with the gold accents of the Hermes CLI "default" skin (#FFBF00). The
-  /// seed-based roles are kept from a gold scheme so every derived surface
-  /// token (surfaceContainerHigh, secondaryContainer, ...) still has a value.
-  ///
-  /// The `seed` argument of buildTheme is intentionally ignored: the palette is
-  /// fixed, so the colour picker in settings no longer repaints the app.
-  static ColorScheme _terminalColorScheme(Brightness brightness) {
+  /// Fork patch (terminal skin): builds the ColorScheme from the palette the
+  /// user picked in settings (ThemePalettes). Seed-based roles still come from
+  /// the palette accent so every derived M3 token keeps a sensible value.
+  static ColorScheme _paletteColorScheme(ThemePalette palette) {
+    final surface = palette.surface;
+    final accent = palette.accent;
+    final dark = palette.dark;
     final base = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFFFBF00),
-      brightness: brightness,
+      seedColor: accent,
+      brightness: dark ? Brightness.dark : Brightness.light,
     );
-    if (brightness == Brightness.light) {
-      return base.copyWith(
-        surface: const Color(0xFFF5F0E8),
-        onSurface: const Color(0xFF2C1810),
-        onSurfaceVariant: const Color(0xFF8B7355),
-        primary: const Color(0xFF8B4513),
-        onPrimary: const Color(0xFFFFF8DC),
-        primaryContainer: const Color(0xFFEAD9BE),
-        onPrimaryContainer: const Color(0xFF2C1810),
-        secondary: const Color(0xFF8B6914),
-        tertiaryContainer: const Color(0xFFE7E1D3),
-        onTertiaryContainer: const Color(0xFF2C1810),
-        outline: const Color(0xFF8B6914),
-        outlineVariant: const Color(0xFFD6C9B4),
-      );
-    }
+    final shade = dark ? Colors.black : Colors.white;
     return base.copyWith(
-      surface: const Color(0xFF1A1B26),
-      onSurface: const Color(0xFFFFF8DC),
-      onSurfaceVariant: const Color(0xFFC9A227),
-      surfaceContainerLowest: const Color(0xFF131420),
-      surfaceContainerLow: const Color(0xFF171824),
-      surfaceContainer: const Color(0xFF1F2335),
-      surfaceContainerHigh: const Color(0xFF23263A),
-      surfaceContainerHighest: const Color(0xFF2A2F45),
-      primary: const Color(0xFFFFBF00),
-      onPrimary: const Color(0xFF1A1B26),
-      primaryContainer: const Color(0xFF3A2F10),
-      onPrimaryContainer: const Color(0xFFFFE9A8),
-      secondary: const Color(0xFFE0AF68),
-      onSecondary: const Color(0xFF1A1B26),
-      secondaryContainer: const Color(0xFF2A2416),
-      onSecondaryContainer: const Color(0xFFFFE0A8),
-      tertiary: const Color(0xFF9AA5CE),
-      tertiaryContainer: const Color(0xFF23263A),
-      onTertiaryContainer: const Color(0xFFE6E8F2),
-      outline: const Color(0xFFCD7F32),
-      outlineVariant: const Color(0xFF2A2F45),
+      surface: surface,
+      onSurface: palette.ink,
+      onSurfaceVariant: palette.muted,
+      surfaceContainerLowest: _mix(surface, shade, dark ? .20 : .05),
+      surfaceContainerLow: _mix(surface, shade, dark ? .08 : .03),
+      surfaceContainer: _mix(surface, accent, .05),
+      surfaceContainerHigh: _mix(surface, accent, .09),
+      surfaceContainerHighest: _mix(surface, palette.border, .35),
+      primary: accent,
+      onPrimary: surface,
+      // Own message bubbles.
+      primaryContainer: _mix(surface, accent, dark ? .20 : .22),
+      onPrimaryContainer: palette.ink,
+      secondary: palette.amber,
+      onSecondary: surface,
+      secondaryContainer: _mix(surface, accent, .10),
+      onSecondaryContainer: palette.ink,
+      // Other people's bubbles stay close to the terminal background.
+      tertiary: palette.muted,
+      tertiaryContainer: _mix(surface, accent, dark ? .06 : .08),
+      onTertiaryContainer: palette.ink,
+      outline: palette.border,
+      outlineVariant: _mix(surface, palette.border, .30),
       error: const Color(0xFFFF5F56),
-      onError: const Color(0xFF1A1B26),
+      onError: surface,
     );
   }
+
+  static Color _mix(Color a, Color b, double t) => Color.lerp(a, b, t)!;
 }
 
 extension on Brightness {
