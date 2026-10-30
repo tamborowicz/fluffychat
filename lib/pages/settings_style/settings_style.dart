@@ -142,7 +142,11 @@ class SettingsStyleController extends State<SettingsStyle> {
   }
 
   Future<void> changeFontSizeFactor(double d) async {
+    // Fork patch: the scale is applied app-wide in MaterialApp.builder, so the
+    // whole tree has to be rebuilt for it to show up without a restart.
+    final themeController = ThemeController.of(context);
     await AppSettings.fontSizeFactor.setItem(d);
+    themeController.refreshTheme();
     setState(() {});
   }
 
