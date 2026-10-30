@@ -88,7 +88,18 @@ class ChatListView extends StatelessWidget {
                     color: oneColumnSpacesMode
                         ? Theme.of(context).colorScheme.surface
                         : null,
-                    child: ChatListViewBody(controller),
+                    child: MediaQuery(
+                      // Fork patch: 90% text in the room list (see
+                      // AppConfig.listTextScale) - composed with the user's own
+                      // system font scale instead of replacing it.
+                      data: MediaQuery.of(context).copyWith(
+                        textScaler: TextScaler.linear(
+                          MediaQuery.textScalerOf(context).scale(1) *
+                              AppConfig.listTextScale,
+                        ),
+                      ),
+                      child: ChatListViewBody(controller),
+                    ),
                   ),
                 ),
                 floatingActionButton:

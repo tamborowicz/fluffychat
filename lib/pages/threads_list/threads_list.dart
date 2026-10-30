@@ -26,6 +26,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat/chat.dart';
 import 'package:fluffychat/utils/date_time_extension.dart';
@@ -239,9 +240,17 @@ class _ThreadsListPageState extends State<ThreadsListPage> {
             ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _reload,
-        child: _buildBody(context, l10n, theme),
+      body: MediaQuery(
+        // Fork patch: 90% text, same as the room list (AppConfig.listTextScale).
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(
+            MediaQuery.textScalerOf(context).scale(1) * AppConfig.listTextScale,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _reload,
+          child: _buildBody(context, l10n, theme),
+        ),
       ),
     );
   }

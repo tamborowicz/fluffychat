@@ -32,6 +32,11 @@ abstract class AppConfig {
 
   /// Message bodies stay proportional; mono is reserved for code and metadata.
   static const String bodyFont = 'sans-serif';
+
+  /// Fork patch: the navigation lists (rooms + threads) run 10% smaller than
+  /// the chat itself. Applied as a textScaler wrapper around the list bodies,
+  /// because AppSettings.fontSizeFactor only scales the timeline and input bar.
+  static const double listTextScale = 0.9;
   static const double columnWidth = 360.0;
 
   static const String enablePushTutorial =
