@@ -5,10 +5,10 @@
 
 import 'package:collection/collection.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:fluffychat/config/app_config.dart';
 import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
+import 'package:fluffychat/terminal/terminal_text.dart';
 import 'package:fluffychat/utils/code_highlight_theme.dart';
 import 'package:fluffychat/utils/event_checkbox_extension.dart';
 import 'package:fluffychat/widgets/avatar.dart';
@@ -315,12 +315,9 @@ class HtmlMessage extends StatelessWidget {
                     ),
                   ..._renderWithLineBreaks(node.nodes, context, depth: depth),
                 ],
-                style: TextStyle(
+                style: TerminalText.messageBody(
                   fontSize: fontSize,
                   color: textColor,
-                  // Fork patch (terminal skin): the theme font is monospace for
-                  // the chrome; message bodies stay proportional.
-                  fontFamily: AppConfig.bodyFont,
                 ),
               ),
             ),
@@ -521,12 +518,9 @@ class HtmlMessage extends StatelessWidget {
                       ),
                   ],
                 ),
-                style: TextStyle(
+                style: TerminalText.messageBody(
                   fontSize: fontSize,
                   color: textColor,
-                  // Fork patch (terminal skin): the theme font is monospace for
-                  // the chrome; message bodies stay proportional.
-                  fontFamily: AppConfig.bodyFont,
                 ),
               ),
             ),

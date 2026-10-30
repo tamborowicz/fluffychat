@@ -22,16 +22,6 @@ class SettingsStyle extends StatefulWidget {
 }
 
 class SettingsStyleController extends State<SettingsStyle> {
-  /// Fork patch (terminal skin): palettes come from ThemePalettes instead of a
-  /// seed colour, so this switches the whole app palette.
-  String get currentPaletteId => AppSettings.themePalette.value;
-
-  void setPalette(String id) {
-    AppSettings.themePalette.setItem(id);
-    ThemeController.of(context).refreshTheme();
-    setState(() {});
-  }
-
   void setChatColor(Color? color) {
     AppSettings.colorSchemeSeedInt.setItem(
       color?.toARGB32() ?? AppSettings.colorSchemeSeedInt.defaultValue,

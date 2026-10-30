@@ -10,6 +10,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
+import 'package:fluffychat/terminal/bubble_style.dart';
 import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/date_time_extension.dart';
 import 'package:fluffychat/utils/file_description.dart';
@@ -434,27 +435,16 @@ class Message extends StatelessWidget {
                                   ),
                                   animateIn: animateIn,
                                   child: Container(
-                                    decoration: BoxDecoration(
-                                      color: noBubble
-                                          ? Colors.transparent
-                                          : color,
+                                    decoration: TerminalBubble.decoration(
+                                      context,
+                                      noBubble: noBubble,
+                                      color: color,
                                       borderRadius: borderRadius,
-                                      // Fork patch (terminal skin): 1px outline
-                                      // instead of elevation - flat terminal look.
-                                      border: noBubble
-                                          ? null
-                                          : Border.all(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.outlineVariant,
-                                            ),
                                     ),
                                     clipBehavior: Clip.antiAlias,
                                     child: BubbleBackground(
                                       colors: colors,
-                                      // Fork patch (terminal skin): no gradient
-                                      // wallpaper behind own bubbles.
-                                      ignore: true,
+                                      ignore: TerminalBubble.ignoreGradient,
                                       scrollController: scrollController,
                                       child: Container(
                                         decoration: BoxDecoration(

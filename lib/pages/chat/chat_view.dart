@@ -258,7 +258,7 @@ class ChatView extends StatelessWidget {
                     // is maintained by ChatController (loaded timeline hint +
                     // one server probe per room) instead of being recomputed
                     // here on every appbar rebuild.
-                    if (controller.hasThreadReplies)
+                    if (controller.threadsHint.visible)
                       IconButton(
                         icon: const Icon(Icons.forum_outlined),
                         tooltip: L10n.of(context).thread,

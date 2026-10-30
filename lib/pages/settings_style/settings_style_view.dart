@@ -5,14 +5,12 @@
 
 import 'dart:ui';
 
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fluffychat/config/setting_keys.dart';
-import 'package:fluffychat/config/theme_palettes.dart';
 import 'package:fluffychat/config/themes.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat/events/state_message.dart';
+import 'package:fluffychat/terminal/settings/terminal_style_page.dart';
 import 'package:fluffychat/utils/account_config.dart';
-import 'package:fluffychat/utils/color_value.dart';
 import 'package:fluffychat/widgets/avatar.dart';
 import 'package:fluffychat/widgets/layouts/max_width_body.dart';
 import 'package:fluffychat/widgets/matrix.dart';
@@ -31,8 +29,6 @@ class SettingsStyleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    const colorPickerSize = 32.0;
     final client = Matrix.of(context).client;
     return Scaffold(
       appBar: AppBar(
@@ -72,99 +68,14 @@ class SettingsStyleView extends StatelessWidget {
             ),
             Divider(color: theme.dividerColor),
             ListTile(
-              title: Text(
-                'Paleta (terminal skin)',
-                style: TextStyle(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.bold,
+              title: const Text('Paleta (terminal skin)'),
+              subtitle: const Text('tło, akcent, czcionka'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const TerminalStylePage(),
                 ),
               ),
-              subtitle: Text(
-                'tło + akcent; zmiana działa natychmiast',
-                style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final palette in ThemePalettes.all)
-                    _PaletteChip(
-                      palette: palette,
-                      selected: palette.id == controller.currentPaletteId,
-                      onTap: () => controller.setPalette(palette.id),
-                    ),
-                ],
-              ),
-            ),
-            Divider(color: theme.dividerColor),
-            ListTile(
-              title: Text(
-                L10n.of(context).setColorTheme,
-                style: TextStyle(
-                  color: theme.colorScheme.secondary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            DynamicColorBuilder(
-              builder: (light, dark) {
-                final systemColor =
-                    Theme.of(context).brightness == Brightness.light
-                    ? light?.primary
-                    : dark?.primary;
-                final colors = [null, AppConfig.chatColor, ...Colors.primaries];
-                if (systemColor == null) {
-                  colors.remove(null);
-                }
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 64,
-                  ),
-                  itemCount: colors.length,
-                  itemBuilder: (context, i) {
-                    final color = colors[i];
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Tooltip(
-                        message: color == null
-                            ? L10n.of(context).systemTheme
-                            : '#${color.hexValue.toRadixString(16).toUpperCase()}',
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(colorPickerSize),
-                          onTap: () => controller.setChatColor(color),
-                          child: Material(
-                            color: color ?? systemColor,
-                            elevation: 6,
-                            borderRadius: BorderRadius.circular(
-                              colorPickerSize,
-                            ),
-                            child: SizedBox(
-                              width: colorPickerSize,
-                              height: colorPickerSize,
-                              child: controller.currentColor == color
-                                  ? Center(
-                                      child: Icon(
-                                        Icons.check,
-                                        size: 16,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onPrimary,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
             ),
             Divider(color: theme.dividerColor),
             ListTile(
@@ -384,59 +295,6 @@ class SettingsStyleView extends StatelessWidget {
               semanticFormatterCallback: (d) => d.toString(),
               onChanged: controller.changeFontSizeFactor,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Fork patch (terminal skin): one selectable palette - background swatch,
-/// accent swatch, name, check mark.
-class _PaletteChip extends StatelessWidget {
-  final ThemePalette palette;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PaletteChip({
-    required this.palette,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: palette.surface,
-          border: Border.all(
-            color: selected ? palette.accent : theme.colorScheme.outlineVariant,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(width: 10, height: 18, color: palette.surface),
-            Container(width: 10, height: 18, color: palette.accent),
-            Container(width: 10, height: 18, color: palette.ink),
-            const SizedBox(width: 8),
-            Text(
-              palette.label,
-              style: TextStyle(
-                fontFamily: AppConfig.monospaceFont,
-                fontSize: 11,
-                color: palette.ink,
-              ),
-            ),
-            if (selected) ...[
-              const SizedBox(width: 6),
-              Icon(Icons.check, size: 14, color: palette.accent),
-            ],
           ],
         ),
       ),

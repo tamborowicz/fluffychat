@@ -19,6 +19,7 @@ import 'package:fluffychat/pages/chat/start_poll_bottom_sheet.dart';
 import 'package:fluffychat/pages/chat/trust_user_key_dialog.dart';
 import 'package:fluffychat/pages/chat/utils/web_file_to_x_file.dart';
 import 'package:fluffychat/pages/chat_details/chat_details.dart';
+import 'package:fluffychat/terminal/threads_hint.dart';
 import 'package:fluffychat/utils/adaptive_bottom_sheet.dart';
 import 'package:fluffychat/utils/error_reporter.dart';
 import 'package:fluffychat/utils/file_selector.dart';
@@ -129,15 +130,8 @@ class ChatController extends State<ChatPageWithRoom>
 
   late final String readMarkerEventId;
 
-  /// Fork patch: does this room have thread replies? Replaces the per-rebuild
-  /// `timeline.events.any(...)` scan that used to sit in the chat appbar (it
-  /// ran on every keystroke and only ever saw the loaded timeline window).
-  bool hasThreadReplies = false;
-
-  /// Fork patch: one probe per room and app run of GET /rooms/{id}/threads, so
-  /// the threads entry point also shows up when every thread is older than the
-  /// loaded timeline window.
-  static final Map<String, bool> _serverThreadProbe = {};
+  /// Fork patch: thread entry-point state (lib/terminal/threads_hint.dart).
+  final ThreadsHint threadsHint = ThreadsHint();
 
   String get roomId => widget.room.id;
 
@@ -588,46 +582,9 @@ class ChatController extends State<ChatPageWithRoom>
 
   void updateView() {
     if (!mounted) return;
-    hasThreadReplies = hasThreadReplies || _localThreadHint();
+    threadsHint.refresh(timeline);
     setReadMarker();
     setState(() {});
-  }
-
-  /// Fork patch: cheap local hint that the room has threads (loaded timeline
-  /// only). Never flips back to false, otherwise the appbar icon would vanish
-  /// as soon as the user enters a thread (the GUI filter hides the replies).
-  bool _localThreadHint() =>
-      timeline?.events.any(
-        (event) => event.relationshipType == RelationshipTypes.thread,
-      ) ??
-      false;
-
-  /// Fork patch: ask the homeserver once per room whether the room has threads
-  /// at all (MSC3856). Silent no-op on homeservers without that endpoint or
-  /// while offline, so the local hint stays the fallback.
-  Future<void> _probeServerThreads() async {
-    final roomId = room.id;
-    if (_serverThreadProbe.containsKey(roomId)) {
-      if (_serverThreadProbe[roomId] == true && !hasThreadReplies && mounted) {
-        setState(() => hasThreadReplies = true);
-      }
-      return;
-    }
-    try {
-      final response = await room.client.request(
-        RequestType.GET,
-        '/client/v1/rooms/$roomId/threads',
-        query: {'limit': '1'},
-      );
-      final chunk = response['chunk'];
-      final hasThreads = chunk is List && chunk.isNotEmpty;
-      _serverThreadProbe[roomId] = hasThreads;
-      if (hasThreads && mounted && !hasThreadReplies) {
-        setState(() => hasThreadReplies = true);
-      }
-    } catch (e, s) {
-      Logs().v('Threads probe unavailable for $roomId', e, s);
-    }
   }
 
   Future<void>? loadTimelineFuture;
@@ -662,8 +619,15 @@ class ChatController extends State<ChatPageWithRoom>
     timeline!.requestKeys(onlineKeyBackupOnly: false);
     if (room.markedUnread) room.markUnread(false);
 
-    hasThreadReplies = hasThreadReplies || _localThreadHint();
-    unawaited(_probeServerThreads());
+    threadsHint.refresh(timeline);
+    unawaited(
+      threadsHint.probe(
+        room,
+        onThreadsFound: () {
+          if (mounted) setState(() {});
+        },
+      ),
+    );
 
     return;
   }
