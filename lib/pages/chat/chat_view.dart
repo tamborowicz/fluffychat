@@ -255,15 +255,22 @@ class ChatView extends StatelessWidget {
                       ),
                     // Fork patch: quick thread navigation icon next to the
                     // call icon (upstream has no threads browse view).
-                    IconButton(
-                      icon: const Icon(Icons.forum_outlined),
-                      tooltip: L10n.of(context).thread,
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => ThreadsListPage(controller),
+                    // Only shown when the loaded timeline holds thread replies.
+                    if (controller.timeline?.events.any(
+                          (event) =>
+                              event.relationshipType ==
+                              RelationshipTypes.thread,
+                        ) ==
+                        true)
+                      IconButton(
+                        icon: const Icon(Icons.forum_outlined),
+                        tooltip: L10n.of(context).thread,
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ThreadsListPage(controller),
+                          ),
                         ),
                       ),
-                    ),
                     ChatSettingsPopupMenu(controller.room, true),
                   ],
                 ],
