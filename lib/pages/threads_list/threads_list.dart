@@ -5,11 +5,13 @@
 // thread roots found in the loaded room timeline (m.thread relations),
 // previews each root event and enters the thread on tap. Upstream keeps all
 // thread machinery (enterThread / thread-filtered GUI) but has no browse view
-// (upstream issue #2874) — this page fills that gap.
+// (upstream issue #2874) - this page fills that gap.
 
+import 'package:fluffychat/config/setting_keys.dart';
 import 'package:fluffychat/l10n/l10n.dart';
 import 'package:fluffychat/pages/chat/chat.dart';
 import 'package:fluffychat/utils/matrix_sdk_extensions/matrix_locals.dart';
+import 'package:fluffychat/widgets/theme_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:matrix/matrix.dart';
 
@@ -23,6 +25,26 @@ class ThreadsListPage extends StatelessWidget {
     final l10n = L10n.of(context);
     final theme = Theme.of(context);
     final timeline = controller.timeline;
+
+    // Fork patch (I4): FC v2 renders its pages through the material_ui
+    // package (its own ThemeData world); a plain flutter widget like this
+    // page inherits the baseline flutter scheme instead (#fffef7ff light)
+    // no matter the ThemeMode. Build a flutter-native ThemeData from the
+    // same seed so this page matches the user's chosen mode.
+    final controllerMode = ThemeController.of(context).themeMode;
+    final expectedBrightness = controllerMode == ThemeMode.dark
+        ? Brightness.dark
+        : controllerMode == ThemeMode.light ? Brightness.light : null;
+    final scheme = ColorScheme.fromSeed(
+      brightness: expectedBrightness ?? theme.brightness,
+      seedColor: Color(AppSettings.colorSchemeSeedInt.value),
+      dynamicSchemeVariant: DynamicSchemeVariant.rainbow,
+    );
+    final effectiveTheme = ThemeData(
+      useMaterial3: true,
+      brightness: expectedBrightness ?? theme.brightness,
+      colorScheme: scheme,
+    );
 
     // Group thread replies by their root event id from the raw timeline
     // (thread replies arrive in the main timeline; the GUI filter only hides
@@ -44,48 +66,64 @@ class ThreadsListPage extends StatelessWidget {
     // Most recently active thread first.
     final entries = threads.entries.toList()
       ..sort(
-        (a, b) => b.value.last.originServerTs.compareTo(a.value.last.originServerTs),
+        (a, b) =>
+            b.value.last.originServerTs.compareTo(a.value.last.originServerTs),
       );
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: Text(l10n.thread),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
-      ),
-      body: entries.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.forum_outlined,
-                    size: 48,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.thread,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+    return Theme(
+      data: effectiveTheme,
+      child: Scaffold(
+        backgroundColor: effectiveTheme.colorScheme.surfaceContainer,
+        appBar: AppBar(
+          backgroundColor: effectiveTheme.colorScheme.surfaceContainer,
+          foregroundColor: effectiveTheme.colorScheme.onSurface,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.thread),
+              Text(
+                'I4·m:${controllerMode.name} · i:${theme.brightness.name} → ${effectiveTheme.brightness.name}',
+                style: effectiveTheme.textTheme.labelSmall?.copyWith(
+                  color: effectiveTheme.colorScheme.onSurfaceVariant,
+                ),
               ),
-            )
-          : ListView.builder(
-              itemCount: entries.length,
-              itemBuilder: (context, i) {
-                final entry = entries[i];
-                return _ThreadTile(
-                  controller: controller,
-                  rootId: entry.key,
-                  replyCount: entry.value.length,
-                  rootEvent: eventsById[entry.key],
-                );
-              },
-            ),
+            ],
+          ),
+        ),
+        body: entries.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.forum_outlined,
+                      size: 48,
+                      color: effectiveTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.thread,
+                      style: effectiveTheme.textTheme.bodyLarge?.copyWith(
+                        color: effectiveTheme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, i) {
+                  final entry = entries[i];
+                  return _ThreadTile(
+                    controller: controller,
+                    rootId: entry.key,
+                    replyCount: entry.value.length,
+                    rootEvent: eventsById[entry.key],
+                  );
+                },
+              ),
+      ),
     );
   }
 }
