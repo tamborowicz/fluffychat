@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import 'package:fluffychat/config/app_config.dart';
-import 'package:fluffychat/config/setting_keys.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -45,11 +44,7 @@ abstract class FluffyThemes {
     Brightness brightness, [
     Color? seed,
   ]) {
-    final colorScheme = ColorScheme.fromSeed(
-      brightness: brightness,
-      seedColor: seed ?? Color(AppSettings.colorSchemeSeedInt.value),
-      dynamicSchemeVariant: DynamicSchemeVariant.rainbow,
-    );
+    final colorScheme = _terminalColorScheme(brightness);
     final isColumnMode = FluffyThemes.isColumnMode(context);
     final dividerColor = brightness == Brightness.dark
         ? colorScheme.surfaceContainerHighest
@@ -59,6 +54,10 @@ abstract class FluffyThemes {
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
+      // Fork patch (terminal skin): monospace chrome. Message bodies override
+      // this back to a proportional face (AppConfig.bodyFont) and code blocks
+      // keep the mono face - that is the "mono chrome" variant.
+      fontFamily: AppConfig.monospaceFont,
       dividerColor: dividerColor,
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
@@ -86,8 +85,11 @@ abstract class FluffyThemes {
       ),
       appBarTheme: AppBarTheme(
         toolbarHeight: isColumnMode ? 72 : 56,
-        surfaceTintColor: isColumnMode ? colorScheme.surface : null,
-        backgroundColor: isColumnMode ? colorScheme.surface : null,
+        // Fork patch (terminal skin): flat app bar - no M3 surface tint.
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actionsPadding: isColumnMode
             ? const EdgeInsets.symmetric(horizontal: 16.0)
             : null,
@@ -129,6 +131,62 @@ abstract class FluffyThemes {
           textStyle: const TextStyle(fontSize: 16),
         ),
       ),
+    );
+  }
+
+  /// Fork patch (terminal skin): palette taken from the owner's Termux setup -
+  /// Tokyo Night Dark background (#1a1b26, what the phone actually renders)
+  /// with the gold accents of the Hermes CLI "default" skin (#FFBF00). The
+  /// seed-based roles are kept from a gold scheme so every derived surface
+  /// token (surfaceContainerHigh, secondaryContainer, ...) still has a value.
+  ///
+  /// The `seed` argument of buildTheme is intentionally ignored: the palette is
+  /// fixed, so the colour picker in settings no longer repaints the app.
+  static ColorScheme _terminalColorScheme(Brightness brightness) {
+    final base = ColorScheme.fromSeed(
+      seedColor: const Color(0xFFFFBF00),
+      brightness: brightness,
+    );
+    if (brightness == Brightness.light) {
+      return base.copyWith(
+        surface: const Color(0xFFF5F0E8),
+        onSurface: const Color(0xFF2C1810),
+        onSurfaceVariant: const Color(0xFF8B7355),
+        primary: const Color(0xFF8B4513),
+        onPrimary: const Color(0xFFFFF8DC),
+        primaryContainer: const Color(0xFFEAD9BE),
+        onPrimaryContainer: const Color(0xFF2C1810),
+        secondary: const Color(0xFF8B6914),
+        tertiaryContainer: const Color(0xFFE7E1D3),
+        onTertiaryContainer: const Color(0xFF2C1810),
+        outline: const Color(0xFF8B6914),
+        outlineVariant: const Color(0xFFD6C9B4),
+      );
+    }
+    return base.copyWith(
+      surface: const Color(0xFF1A1B26),
+      onSurface: const Color(0xFFFFF8DC),
+      onSurfaceVariant: const Color(0xFFC9A227),
+      surfaceContainerLowest: const Color(0xFF131420),
+      surfaceContainerLow: const Color(0xFF171824),
+      surfaceContainer: const Color(0xFF1F2335),
+      surfaceContainerHigh: const Color(0xFF23263A),
+      surfaceContainerHighest: const Color(0xFF2A2F45),
+      primary: const Color(0xFFFFBF00),
+      onPrimary: const Color(0xFF1A1B26),
+      primaryContainer: const Color(0xFF3A2F10),
+      onPrimaryContainer: const Color(0xFFFFE9A8),
+      secondary: const Color(0xFFE0AF68),
+      onSecondary: const Color(0xFF1A1B26),
+      secondaryContainer: const Color(0xFF2A2416),
+      onSecondaryContainer: const Color(0xFFFFE0A8),
+      tertiary: const Color(0xFF9AA5CE),
+      tertiaryContainer: const Color(0xFF23263A),
+      onTertiaryContainer: const Color(0xFFE6E8F2),
+      outline: const Color(0xFFCD7F32),
+      outlineVariant: const Color(0xFF2A2F45),
+      error: const Color(0xFFFF5F56),
+      onError: const Color(0xFF1A1B26),
     );
   }
 }

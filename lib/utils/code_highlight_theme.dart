@@ -3,12 +3,18 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import 'package:fluffychat/config/app_config.dart';
 import 'package:flutter/widgets.dart';
 
 const hightlightTextColor = Color(0xffabb2bf);
 const atomOneBackgroundColor = Color(0xff282c34);
 const atomOneDarkTheme = {
-  'root': TextStyle(color: hightlightTextColor),
+  // Fork patch (terminal skin): code blocks get a monospace face. Upstream only
+  // set syntax colours here, so code rendered in the proportional body font.
+  'root': TextStyle(
+    color: hightlightTextColor,
+    fontFamily: AppConfig.monospaceFont,
+  ),
   'comment': TextStyle(color: Color(0xff5c6370), fontStyle: FontStyle.italic),
   'quote': TextStyle(color: Color(0xff5c6370), fontStyle: FontStyle.italic),
   'doctag': TextStyle(color: Color(0xffc678dd)),

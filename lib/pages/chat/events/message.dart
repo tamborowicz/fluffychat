@@ -439,14 +439,22 @@ class Message extends StatelessWidget {
                                           ? Colors.transparent
                                           : color,
                                       borderRadius: borderRadius,
+                                      // Fork patch (terminal skin): 1px outline
+                                      // instead of elevation - flat terminal look.
+                                      border: noBubble
+                                          ? null
+                                          : Border.all(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.outlineVariant,
+                                            ),
                                     ),
                                     clipBehavior: Clip.antiAlias,
                                     child: BubbleBackground(
                                       colors: colors,
-                                      ignore:
-                                          noBubble ||
-                                          !ownMessage ||
-                                          MediaQuery.highContrastOf(context),
+                                      // Fork patch (terminal skin): no gradient
+                                      // wallpaper behind own bubbles.
+                                      ignore: true,
                                       scrollController: scrollController,
                                       child: Container(
                                         decoration: BoxDecoration(

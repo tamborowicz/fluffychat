@@ -114,6 +114,13 @@ flutter:
     - assets/logo/mini/
     - assets/sounds/
     - assets/vodozemac/0.8.1/
+  fonts:
+    # Fork patch (terminal skin): Droid Sans Mono pulled from the owner's
+    # Titan 2 (/system/fonts/DroidSansMono.ttf) so the app matches Termux on
+    # the same device instead of relying on generic-family resolution.
+    - family: DroidSansMono
+      fonts:
+        - asset: assets/fonts/DroidSansMono.ttf
 
 hooks:
   user_defines:

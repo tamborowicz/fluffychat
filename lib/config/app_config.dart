@@ -19,8 +19,19 @@ abstract class AppConfig {
   static const String schemePrefix = 'matrix:';
   static const String pushNotificationsChannelId = 'fluffychat_push';
   static const String pushNotificationsAppId = 'chat.fluffy.fluffychat';
-  static const double borderRadius = 18.0;
-  static const double spaceBorderRadius = 11.0;
+  /// Fork patch (terminal skin): square corners everywhere - this single value
+  /// drives most call sites, so 0 turns the whole UI rectangular.
+  static const double borderRadius = 0.0;
+  static const double spaceBorderRadius = 0.0;
+
+  /// Fork patch (terminal skin): Droid Sans Mono is bundled straight from the
+  /// owner's Titan 2 (/system/fonts/DroidSansMono.ttf), so the app renders
+  /// exactly like Termux on that device. Used for the chrome: headers, list
+  /// titles, timestamps, counters, code.
+  static const String monospaceFont = 'DroidSansMono';
+
+  /// Message bodies stay proportional; mono is reserved for code and metadata.
+  static const String bodyFont = 'sans-serif';
   static const double columnWidth = 360.0;
 
   static const String enablePushTutorial =
